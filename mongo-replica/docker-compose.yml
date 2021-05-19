@@ -1,0 +1,76 @@
+version: '3'
+services:
+  mongo1:
+    container_name: "mongo1"
+    image: mongo:4.1.7
+    ports:
+      - "27017:27017"
+    command: mongod --replSet vision-set --bind_ip 0.0.0.0 --auth --keyFile /data/mongo.key
+    links:
+      - mongo2:mongo2
+      - mongo3:mongo3
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./data/mongo-1/db:/data/db
+      - ./data/mongo-1/log:/data/log
+      - ./mongo.key:/data/mongo.key
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    restart: always
+
+  mongo2:
+    container_name: "mongo2"
+    image: mongo:4.1.7
+    ports:
+      - "27018:27017"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./data/mongo-2/db:/data/db
+      - ./data/mongo-2/log:/data/log
+      - ./mongo.key:/data/mongo.key
+    command: mongod --replSet vision-set  --bind_ip 0.0.0.0 --auth --keyFile /data/mongo.key
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    restart: always
+
+  mongo3:
+    container_name: "mongo3"
+    image: mongo:4.1.7
+    ports:
+      - "27019:27017"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./data/mongo-3/db:/data/db
+      - ./data/mongo-3/log:/data/log
+      - ./mongo.key:/data/mongo.key
+    command: mongod --replSet vision-set  --bind_ip 0.0.0.0 --auth --keyFile /data/mongo.key
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    restart: always
+
+  mongo-vision-set-setup:
+    container_name: "mongo-vision-set-setup"
+    image: mongo:4.1.7
+    depends_on:
+      - "mongo1"
+      - "mongo2"
+      - "mongo3"
+    links:
+      - mongo1:mongo1
+      - mongo2:mongo2
+      - mongo3:mongo3
+    volumes:
+        - ./scripts:/scripts:rw
+    environment:
+      - MONGO1=mongo1
+      - MONGO2=mongo2
+      - MONGO3=mongo3
+      - RS=vision-set
+      - HOSTIP=192.168.2.110
+      - DBUSER=root
+      - DBPWD=root
+    entrypoint: [ "/scripts/setup.sh" ]
+    # entrypoint: [ "tail", "-f", "/scripts/setup.sh"]
