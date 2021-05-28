@@ -1,0 +1,19 @@
+address: 0.0.0.0:7373
+root:    disabled
+
+tls:
+  key : server.key
+  cert: server.cert
+
+policy:
+  my-app:
+    paths:
+    - /v1/key/create/my-minio-key
+    - /v1/key/generate/my-minio-key
+    - /v1/key/decrypt/my-minio-key
+    identities:
+    - ${MINIO_IDENTITY}
+
+keys:
+  fs:
+    path: /data/keys

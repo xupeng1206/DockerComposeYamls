@@ -1,0 +1,24 @@
+version: "3.0"
+services:
+  minio:
+    image: minio:local
+    container_name: minio
+    restart: always
+    environment:
+      MINIO_ACCESS_KEY: AKIAIOSFODNN7EXAMPLE
+      MINIO_SECRET_KEY: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+      MINIO_REGION_NAME: "us-east-1"
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./data/minio:/data:rw
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+        - CMD
+        - curl
+        - -f
+        - https://localhost:9000/minio/health/live
+      timeout: 20s
+    
